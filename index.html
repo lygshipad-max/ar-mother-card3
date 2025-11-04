@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>母親節 AR 卡片 - 多圖標版</title>
+    <title>母親節 AR 卡片 - 多圖標有聲版</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -96,6 +96,33 @@
         #targetInfo.show {
             display: block;
         }
+        /* 音量圖標 */
+        #volumeIcon {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255,105,180,0.9);
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            z-index: 998;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        #volumeIcon.show {
+            display: flex;
+        }
+        #volumeIcon:active {
+            transform: scale(0.9);
+        }
+        #volumeIcon.muted {
+            background: rgba(128,128,128,0.9);
+        }
     </style>
 </head>
 <body>
@@ -109,11 +136,17 @@
     </div>
 
     <div id="instructions">
-        📷 將相機對準卡片上的任一禮物圖標
+        📷 將相機對準卡片上的任一禮物圖標<br>
+        <small>點擊畫面開啟聲音</small>
     </div>
 
     <div id="targetInfo">
         找到圖標！
+    </div>
+
+    <!-- 音量控制按鈕 -->
+    <div id="volumeIcon" title="點擊切換聲音">
+        <span id="volumeIconText">🔊</span>
     </div>
 
     <a-scene 
@@ -138,6 +171,7 @@
                 height="0.9"
                 opacity="0"
                 class="ar-video"
+                data-target-index="0"
                 animation__fadein="property: opacity; from: 0; to: 1; dur: 500; startEvents: videoready">
             </a-video>
 
@@ -152,13 +186,13 @@
 
             <!-- 播放提示 -->
             <a-text 
-                value="▶ 點擊播放" 
+                value="🔊 點擊開啟聲音" 
                 position="0 -0.55 0" 
                 align="center" 
-                color="#FFFFFF"
-                width="1.5"
+                color="#FFFF00"
+                width="1.8"
                 class="play-hint"
-                visible="false">
+                visible="true">
             </a-text>
 
         </a-entity>
@@ -175,6 +209,7 @@
                 height="0.9"
                 opacity="0"
                 class="ar-video"
+                data-target-index="1"
                 animation__fadein="property: opacity; from: 0; to: 1; dur: 500; startEvents: videoready">
             </a-video>
 
@@ -189,13 +224,13 @@
 
             <!-- 播放提示 -->
             <a-text 
-                value="▶ 點擊播放" 
+                value="🔊 點擊開啟聲音" 
                 position="0 -0.55 0" 
                 align="center" 
-                color="#FFFFFF"
-                width="1.5"
+                color="#FFFF00"
+                width="1.8"
                 class="play-hint"
-                visible="false">
+                visible="true">
             </a-text>
 
         </a-entity>
@@ -212,6 +247,7 @@
                 height="0.9"
                 opacity="0"
                 class="ar-video"
+                data-target-index="2"
                 animation__fadein="property: opacity; from: 0; to: 1; dur: 500; startEvents: videoready">
             </a-video>
 
@@ -226,23 +262,22 @@
 
             <!-- 播放提示 -->
             <a-text 
-                value="▶ 點擊播放" 
+                value="🔊 點擊開啟聲音" 
                 position="0 -0.55 0" 
                 align="center" 
-                color="#FFFFFF"
-                width="1.5"
+                color="#FFFF00"
+                width="1.8"
                 class="play-hint"
-                visible="false">
+                visible="true">
             </a-text>
 
         </a-entity>
 
-        <!-- 影片素材 -->
+        <!-- 影片素材 - 移除 muted 屬性以支援聲音 -->
         <a-assets timeout="30000">
-            <!-- 你可以用 3 個不同的影片，或同一個影片 -->
-            <video id="video1" src="./video1.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
-            <video id="video2" src="./video2.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
-            <video id="video3" src="./video3.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
+            <video id="video1" src="./video1.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></video>
+            <video id="video2" src="./video2.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></video>
+            <video id="video3" src="./video3.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></video>
         </a-assets>
     </a-scene>
 
@@ -304,11 +339,17 @@
 
         // 追蹤管理
         const targetInfo = document.getElementById('targetInfo');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const volumeIconText = document.getElementById('volumeIconText');
+        let globalMuted = false;
+
         const targets = [
             { id: 'target0', name: '禮物 1', video: 'video1', color: '#FF1493' },
             { id: 'target1', name: '禮物 2', video: 'video2', color: '#4169E1' },
             { id: 'target2', name: '禮物 3', video: 'video3', color: '#32CD32' }
         ];
+
+        let hasUserInteracted = false;
 
         // 為每個目標添加事件
         targets.forEach((targetData, index) => {
@@ -323,16 +364,11 @@
                 targetInfo.textContent = `✓ 找到 ${targetData.name}！`;
                 targetInfo.style.background = targetData.color;
                 targetInfo.classList.add('show');
+                volumeIcon.classList.add('show');
 
-                // 播放對應的影片
+                // 嘗試播放影片（可能需要用戶互動）
                 setTimeout(() => {
-                    video.play().then(() => {
-                        console.log(`[播放] ${targetData.name} 影片開始`);
-                        arVideo.setAttribute('opacity', '1');
-                    }).catch(err => {
-                        console.warn(`[播放] ${targetData.name} 自動播放失敗`);
-                        playHint.setAttribute('visible', 'true');
-                    });
+                    playVideoWithSound(video, arVideo, playHint, targetData.name);
                 }, 300);
             });
 
@@ -343,14 +379,27 @@
                 video.pause();
             });
 
-            // 點擊切換播放
+            // 點擊影片區域 - 取消靜音並播放
             arVideo.addEventListener('click', () => {
+                hasUserInteracted = true;
+                
                 if (video.paused) {
-                    video.play();
-                    playHint.setAttribute('visible', 'false');
+                    // 播放並取消靜音
+                    video.muted = false;
+                    globalMuted = false;
+                    video.play().then(() => {
+                        console.log(`[播放] ${targetData.name} 播放中，聲音已開啟`);
+                        arVideo.setAttribute('opacity', '1');
+                        playHint.setAttribute('visible', 'false');
+                        updateVolumeIcon();
+                    }).catch(err => {
+                        console.error(`[播放] ${targetData.name} 播放失敗:`, err);
+                    });
                 } else {
+                    // 暫停
                     video.pause();
                     playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '▶ 點擊繼續');
                 }
             });
 
@@ -361,6 +410,64 @@
             });
         });
 
+        // 播放影片並處理聲音
+        function playVideoWithSound(video, arVideo, playHint, name) {
+            if (!hasUserInteracted) {
+                // 用戶還沒有互動，先靜音播放
+                video.muted = true;
+                video.play().then(() => {
+                    console.log(`[播放] ${name} 靜音播放中（等待用戶點擊開啟聲音）`);
+                    arVideo.setAttribute('opacity', '1');
+                    playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '🔊 點擊開啟聲音');
+                }).catch(err => {
+                    console.error(`[播放] ${name} 播放失敗:`, err);
+                    playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '▶ 點擊播放');
+                });
+            } else {
+                // 用戶已經互動過，可以有聲音播放
+                video.muted = globalMuted;
+                video.play().then(() => {
+                    console.log(`[播放] ${name} 播放中，聲音:`, globalMuted ? '關閉' : '開啟');
+                    arVideo.setAttribute('opacity', '1');
+                    playHint.setAttribute('visible', 'false');
+                }).catch(err => {
+                    console.error(`[播放] ${name} 播放失敗:`, err);
+                    // 如果失敗，嘗試靜音播放
+                    video.muted = true;
+                    video.play();
+                    playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '🔊 點擊開啟聲音');
+                });
+            }
+        }
+
+        // 音量按鈕控制
+        volumeIcon.addEventListener('click', () => {
+            hasUserInteracted = true;
+            globalMuted = !globalMuted;
+            
+            // 更新所有影片的靜音狀態
+            targets.forEach(targetData => {
+                const video = document.getElementById(targetData.video);
+                video.muted = globalMuted;
+            });
+            
+            updateVolumeIcon();
+            console.log('[音量] 全局靜音:', globalMuted);
+        });
+
+        function updateVolumeIcon() {
+            if (globalMuted) {
+                volumeIconText.textContent = '🔇';
+                volumeIcon.classList.add('muted');
+            } else {
+                volumeIconText.textContent = '🔊';
+                volumeIcon.classList.remove('muted');
+            }
+        }
+
         // 檢查檔案
         fetch('./targets.mind', { method: 'HEAD' })
             .then(response => {
@@ -368,11 +475,6 @@
                     const size = response.headers.get('content-length');
                     const sizeMB = (size / 1024 / 1024).toFixed(2);
                     console.log(`[檔案] targets.mind 大小: ${sizeMB} MB`);
-                    if (size > 3 * 1024 * 1024) {
-                        console.warn('[警告] targets.mind 超過 3MB，載入可能較慢');
-                    }
-                } else {
-                    console.error('[錯誤] 找不到 targets.mind');
                 }
             });
 
