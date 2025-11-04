@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>母親節 AR 卡片 - 多圖標有聲版</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        }
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s;
+        }
+        #loading.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: #ff69b4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px 0;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .progress-container {
+            width: 280px;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff69b4, #ff1493);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .status {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        #instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,105,180,0.95);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 999;
+            text-align: center;
+            max-width: 85%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none;
+        }
+        #instructions.show {
+            display: block;
+        }
+        #targetInfo {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            z-index: 998;
+            display: none;
+        }
+        #targetInfo.show {
+            display: block;
+        }
+        /* 音量圖標 */
+        #volumeIcon {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255,105,180,0.9);
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            z-index: 998;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        #volumeIcon.show {
+            display: flex;
+        }
+        #volumeIcon:active {
+            transform: scale(0.9);
+        }
+        #volumeIcon.muted {
+            background: rgba(128,128,128,0.9);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div style="font-size: 48px; margin-bottom: 20px;">💝</div>
+        <div class="loader"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="status" id="statusText">正在載入 AR 體驗...</div>
+    </div>
+
+    <div id="instructions">
+        📷 將相機對準卡片上的任一禮物圖標<br>
+        <small>點擊畫面開啟聲音</small>
+    </div>
+
+    <div id="targetInfo">
+        找到圖標！
+    </div>
+
+    <!-- 音量控制按鈕 -->
+    <div id="volumeIcon" title="點擊切換聲音">
+        <span id="volumeIconText">🔊</span>
+    </div>
+
+    <a-scene 
+        mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 3;"
+        color-space="sRGB" 
+        renderer="colorManagement: true; antialias: true; precision: medium;" 
+        vr-mode-ui="enabled: false" 
+        device-orientation-permission-ui="enabled: false"
+        loading-screen="enabled: false">
+        
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <!-- 禮物圖標 1 -->
+        <a-entity mindar-image-target="targetIndex: 0" id="target0">
+            
+            <!-- 影片 1 -->
+            <a-video 
+                src="#video1" 
+                position="0 0 0" 
+                rotation="0 0 0"
+                width="1.6" 
+                height="0.9"
+                opacity="0"
+                class="ar-video"
+                data-target-index="0"
+                animation__fadein="property: opacity; from: 0; to: 1; dur: 500; startEvents: videoready">
+            </a-video>
+
+            <!-- 標題文字 -->
+            <a-text 
+                value="禮物 1" 
+                position="0 0.55 0" 
+                align="center" 
+                color="#FF1493"
+                width="2">
+            </a-text>
+
+            <!-- 播放提示 -->
+            <a-text 
+                value="🔊 點擊開啟聲音" 
+                position="0 -0.55 0" 
+                align="center" 
+                color="#FFFF00"
+                width="1.8"
+                class="play-hint"
+                visible="true">
+            </a-text>
+
+        </a-entity>
+
+        <!-- 禮物圖標 2 -->
+        <a-entity mindar-image-target="targetIndex: 1" id="target1">
+            
+            <!-- 影片 2 -->
+            <a-video 
+                src="#video2" 
+                position="0 0 0" 
+                rotation="0 0 0"
+                width="1.6" 
+                height="0.9"
+                opacity="0"
+                class="ar-video"
+                data-target-index="1"
+                animation__fadein="property: opacity; from: 0; to: 1; dur: 500; startEvents: videoready">
+            </a-video>
+
+            <!-- 標題文字 -->
+            <a-text 
+                value="禮物 2" 
+                position="0 0.55 0" 
+                align="center" 
+                color="#4169E1"
+                width="2">
+            </a-text>
+
+            <!-- 播放提示 -->
+            <a-text 
+                value="🔊 點擊開啟聲音" 
+                position="0 -0.55 0" 
+                align="center" 
+                color="#FFFF00"
+                width="1.8"
+                class="play-hint"
+                visible="true">
+            </a-text>
+
+        </a-entity>
+
+        <!-- 禮物圖標 3 -->
+        <a-entity mindar-image-target="targetIndex: 2" id="target2">
+            
+            <!-- 影片 3 -->
+            <a-video 
+                src="#video3" 
+                position="0 0 0" 
+                rotation="0 0 0"
+                width="1.6" 
+                height="0.9"
+                opacity="0"
+                class="ar-video"
+                data-target-index="2"
+                animation__fadein="property: opacity; from: 0; to: 1; dur: 500; startEvents: videoready">
+            </a-video>
+
+            <!-- 標題文字 -->
+            <a-text 
+                value="禮物 3" 
+                position="0 0.55 0" 
+                align="center" 
+                color="#32CD32"
+                width="2">
+            </a-text>
+
+            <!-- 播放提示 -->
+            <a-text 
+                value="🔊 點擊開啟聲音" 
+                position="0 -0.55 0" 
+                align="center" 
+                color="#FFFF00"
+                width="1.8"
+                class="play-hint"
+                visible="true">
+            </a-text>
+
+        </a-entity>
+
+        <!-- 影片素材 - 移除 muted 屬性以支援聲音 -->
+        <a-assets timeout="30000">
+            <video id="video1" src="./video1.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></video>
+            <video id="video2" src="./video2.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></video>
+            <video id="video3" src="./video3.mp4" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></video>
+        </a-assets>
+    </a-scene>
+
+    <script>
+        // 載入管理
+        const LoadingManager = {
+            progress: 0,
+            progressBar: document.getElementById('progressBar'),
+            statusText: document.getElementById('statusText'),
+            loadingEl: document.getElementById('loading'),
+            
+            setProgress(percent, status) {
+                this.progress = Math.min(percent, 100);
+                this.progressBar.style.width = this.progress + '%';
+                if (status) this.statusText.textContent = status;
+                console.log(`[載入] ${this.progress}% - ${status}`);
+            },
+            
+            complete() {
+                this.setProgress(100, '準備完成！');
+                setTimeout(() => {
+                    this.loadingEl.classList.add('fade-out');
+                    setTimeout(() => {
+                        this.loadingEl.style.display = 'none';
+                        document.getElementById('instructions').classList.add('show');
+                    }, 500);
+                }, 300);
+            }
+        };
+
+        // 模擬載入進度
+        let simulatedProgress = 0;
+        const progressInterval = setInterval(() => {
+            if (simulatedProgress < 70) {
+                simulatedProgress += Math.random() * 8;
+                LoadingManager.setProgress(simulatedProgress, '載入 AR 引擎...');
+            }
+        }, 400);
+
+        // A-Frame 場景事件
+        const sceneEl = document.querySelector('a-scene');
+        
+        sceneEl.addEventListener('loaded', () => {
+            console.log('[場景] A-Frame 已載入');
+            clearInterval(progressInterval);
+            LoadingManager.setProgress(90, '初始化相機...');
+        });
+
+        sceneEl.addEventListener('arReady', () => {
+            console.log('[AR] 系統就緒！');
+            clearInterval(progressInterval);
+            LoadingManager.complete();
+        });
+
+        sceneEl.addEventListener('arError', (event) => {
+            console.error('[AR] 錯誤:', event.detail);
+            LoadingManager.setProgress(0, 'AR 初始化失敗');
+        });
+
+        // 追蹤管理
+        const targetInfo = document.getElementById('targetInfo');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const volumeIconText = document.getElementById('volumeIconText');
+        let globalMuted = false;
+
+        const targets = [
+            { id: 'target0', name: '禮物 1', video: 'video1', color: '#FF1493' },
+            { id: 'target1', name: '禮物 2', video: 'video2', color: '#4169E1' },
+            { id: 'target2', name: '禮物 3', video: 'video3', color: '#32CD32' }
+        ];
+
+        let hasUserInteracted = false;
+
+        // 為每個目標添加事件
+        targets.forEach((targetData, index) => {
+            const target = document.querySelector(`#${targetData.id}`);
+            const video = document.getElementById(targetData.video);
+            const arVideo = target.querySelector('.ar-video');
+            const playHint = target.querySelector('.play-hint');
+
+            // 目標找到
+            target.addEventListener('targetFound', () => {
+                console.log(`[追蹤] ✓ 找到 ${targetData.name}！`);
+                targetInfo.textContent = `✓ 找到 ${targetData.name}！`;
+                targetInfo.style.background = targetData.color;
+                targetInfo.classList.add('show');
+                volumeIcon.classList.add('show');
+
+                // 嘗試播放影片（可能需要用戶互動）
+                setTimeout(() => {
+                    playVideoWithSound(video, arVideo, playHint, targetData.name);
+                }, 300);
+            });
+
+            // 目標失去
+            target.addEventListener('targetLost', () => {
+                console.log(`[追蹤] 失去 ${targetData.name}`);
+                targetInfo.classList.remove('show');
+                video.pause();
+            });
+
+            // 點擊影片區域 - 取消靜音並播放
+            arVideo.addEventListener('click', () => {
+                hasUserInteracted = true;
+                
+                if (video.paused) {
+                    // 播放並取消靜音
+                    video.muted = false;
+                    globalMuted = false;
+                    video.play().then(() => {
+                        console.log(`[播放] ${targetData.name} 播放中，聲音已開啟`);
+                        arVideo.setAttribute('opacity', '1');
+                        playHint.setAttribute('visible', 'false');
+                        updateVolumeIcon();
+                    }).catch(err => {
+                        console.error(`[播放] ${targetData.name} 播放失敗:`, err);
+                    });
+                } else {
+                    // 暫停
+                    video.pause();
+                    playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '▶ 點擊繼續');
+                }
+            });
+
+            // 影片結束
+            video.addEventListener('ended', () => {
+                playHint.setAttribute('visible', 'true');
+                playHint.setAttribute('value', '🔄 點擊重播');
+            });
+        });
+
+        // 播放影片並處理聲音
+        function playVideoWithSound(video, arVideo, playHint, name) {
+            if (!hasUserInteracted) {
+                // 用戶還沒有互動，先靜音播放
+                video.muted = true;
+                video.play().then(() => {
+                    console.log(`[播放] ${name} 靜音播放中（等待用戶點擊開啟聲音）`);
+                    arVideo.setAttribute('opacity', '1');
+                    playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '🔊 點擊開啟聲音');
+                }).catch(err => {
+                    console.error(`[播放] ${name} 播放失敗:`, err);
+                    playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '▶ 點擊播放');
+                });
+            } else {
+                // 用戶已經互動過，可以有聲音播放
+                video.muted = globalMuted;
+                video.play().then(() => {
+                    console.log(`[播放] ${name} 播放中，聲音:`, globalMuted ? '關閉' : '開啟');
+                    arVideo.setAttribute('opacity', '1');
+                    playHint.setAttribute('visible', 'false');
+                }).catch(err => {
+                    console.error(`[播放] ${name} 播放失敗:`, err);
+                    // 如果失敗，嘗試靜音播放
+                    video.muted = true;
+                    video.play();
+                    playHint.setAttribute('visible', 'true');
+                    playHint.setAttribute('value', '🔊 點擊開啟聲音');
+                });
+            }
+        }
+
+        // 音量按鈕控制
+        volumeIcon.addEventListener('click', () => {
+            hasUserInteracted = true;
+            globalMuted = !globalMuted;
+            
+            // 更新所有影片的靜音狀態
+            targets.forEach(targetData => {
+                const video = document.getElementById(targetData.video);
+                video.muted = globalMuted;
+            });
+            
+            updateVolumeIcon();
+            console.log('[音量] 全局靜音:', globalMuted);
+        });
+
+        function updateVolumeIcon() {
+            if (globalMuted) {
+                volumeIconText.textContent = '🔇';
+                volumeIcon.classList.add('muted');
+            } else {
+                volumeIconText.textContent = '🔊';
+                volumeIcon.classList.remove('muted');
+            }
+        }
+
+        // 檢查檔案
+        fetch('./targets.mind', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    const size = response.headers.get('content-length');
+                    const sizeMB = (size / 1024 / 1024).toFixed(2);
+                    console.log(`[檔案] targets.mind 大小: ${sizeMB} MB`);
+                }
+            });
+
+        // 錯誤捕捉
+        window.addEventListener('error', (e) => {
+            console.error('[全域錯誤]', e.message);
+        });
+    </script>
+</body>
+</html>
